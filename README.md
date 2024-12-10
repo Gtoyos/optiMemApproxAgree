@@ -33,7 +33,6 @@ $$
 Therefore, the difference between consecutive points is:
 
 $$
-
 \delta = \frac{|b-a|}{3^r}
 $$
 
