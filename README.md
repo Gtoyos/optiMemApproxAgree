@@ -1,32 +1,44 @@
-# 2-Process Approximate Agreement with Optimal shared memory
-
-This project introduces an algorithm for reaching approximate agreement between two processes using an optimal size of shared memory on each communication round.
-
-Particularly, we use `uint8` as it is the smalles primitive **atomic** type in go.
-
-Particularly we use single-writer multiple-reader (SWMR) shared variables. Particularlt, we consider that the primitive type `uint8` is **atomic**. That is, if a the variable is written by a single process and read at the same time the behaviour is not undefined: it will be either read the previous variable's value or the new updated value.
-
-Note that `uint8` is atomit in any CPU that handles words bigger than 8 bits (current CPU work with 64 bit words).
+# 2-Process Approximate Agreement with Optimal Shared Memory
 
 
-For calculating the agreement level we calculate the distance in the protocol complex as follows: 
+This project introduces an distributed algorithm for reaching approximate agreement between two processes using an optimal size of shared memory on each communication round.
 
-A point x in the protocol complex is named from 0 to x/3^r. Where x ranges from 0 to 3^r. 
-Then we take the initial input values to map the input complex to the segment andwe get:
 
-x' = min(a,b) + x/3^r |b-a|
+This implementation is based on the optimal bounded IIS two-process approximate agreement algorithm described in the paper by G. Toyos-Marfurt and P. Kuznetsov, “On the Bit Complexity of Iterated Memory”, available [here](https://arxiv.org/abs/2402.12484).
 
-Of course this gives that the difference between consecutives points is:
+## About the implementation
 
-delta = |b-a| / 3^r 
+We use `uint8` as it is the smalles primitive **atomic** type in go.
 
-So if we want the agreement to reach a certain precision Agg. We have at least to do this many rounds:
+We use single-writer multiple-reader (SWMR) shared variables, assuming that `uint8` operations are **atomic**. Specifically, when a uint8 variable is written by one process and read simultaneously, the behavior is deterministic: the reader observes either the previous value or the newly written value.
 
-r > 1/ln(3) ( ln(|b-a|) - ln(Agg) )
+Note that `uint8` is atomit in any CPU that handles words bigger than 8 bits (current CPUs typically work with 64 bit words).
 
-With this formula we can map this input to any input in the domain.
+## Agreement precision and rounds
 
-### Motivation
+For calculating the agreement, we map the possible values on the protocol complex as follows:
 
-My objective was to implement a distribued system algorithm and what best that an interesting one that 
-I made myself and is novel :). Also to get some go programming experience. 
+A point $x$ in the protocol complex is defined as:
+
+$$
+x = \frac{i}{3^r} \ \ i\in\{0,1,3^r\}
+$$
+
+For generic inputs $a$ and $b$, we map the $0$-$1$ output complex to the extended segment as:
+
+$$
+x' = \min(a,b) + x \times |b-a|
+$$
+
+Therefore, the difference between consecutive points is:
+
+$$
+
+\delta = \frac{|b-a|}{3^r}
+$$
+
+To achieve a target agreement precision $\delta$ , the number of rounds  $r$  must satisfy:
+
+$$
+r > \frac{1}{\log{3}}(\log{|b-a|} - \log{\delta})
+$$

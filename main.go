@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"math"
-	"math/rand"
-	"time"
 )
 
 func main() {
@@ -14,11 +12,18 @@ func main() {
 	inputValue2 := flag.Float64("input2", 1.0, "Input value of process 1 (compatible with type)")
 	inputAgreementLvl := flag.Float64("Agreement", 0.000001, "Agreement level. Numeric difference between the two values")
 
+	flag.Parse()
+
 	a := min(*inputValue1, *inputValue2)
 	b := max(*inputValue1, *inputValue2)
 
 	//We calculate the required number of rounds to reach the agreement level in function of the distance between values
 	r := int(math.Ceil(1 / math.Log(3) * (math.Log(math.Abs(b-a)) - math.Log(*inputAgreementLvl))))
+	fmt.Printf("--- Approximate agreement 2-process task ---\n")
+	fmt.Printf("Process 0 input: %f\n", a)
+	fmt.Printf("Process 1 input: %f\n", b)
+	fmt.Printf("Agreement level: %f\n", *inputAgreementLvl)
+	fmt.Printf("--------------------------------------------\n")
 	fmt.Printf("Agreement level requires %d communication rounds.\n", r)
 	//initialize shared snapshots
 	snapshots := make([]*SnapshotAtomic[uint8], r)
@@ -33,12 +38,12 @@ func main() {
 	//start agreement protocol. Generate random delay.
 	go func() {
 		//wait a random time between 10 and 20 ms
-		time.Sleep(time.Duration(rand.Intn(100-20+1)+10) * time.Millisecond)
+		//time.Sleep(time.Duration(rand.Intn(100-20+1)+10) * time.Millisecond)
 		agreement_protocol(0, r, snapshots, c1)
 	}()
 	go func() {
 		//wait a random time between 10 and 20 ms
-		time.Sleep(time.Duration(rand.Intn(100-20+1)+10) * time.Millisecond)
+		//time.Sleep(time.Duration(rand.Intn(100-20+1)+10) * time.Millisecond)
 		agreement_protocol(1, r, snapshots, c2)
 	}()
 
@@ -47,10 +52,12 @@ func main() {
 	for i := 0; i < 2; i++ {
 		select {
 		case v := <-c1:
-			fmt.Printf("Process0: %f\n", v)
+			v = min(a, b) + math.Abs(b-a)*v
+			fmt.Printf("Process0 decision output: %f\n", v)
 		case v := <-c2:
-			fmt.Printf("Process1: %f\n", v)
+			v = min(a, b) + math.Abs(b-a)*v
+			fmt.Printf("Process1 decision output: %f\n", v)
 		}
 	}
-	fmt.Println("Agreement reached sucessfully.")
+	fmt.Println("Agreement task compleated.")
 }
