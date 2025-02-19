@@ -12,7 +12,13 @@ We use `uint8` as it is the smalles primitive **atomic** type in go.
 
 We use single-writer multiple-reader (SWMR) shared variables, assuming that `uint8` operations are **atomic**. Specifically, when a uint8 variable is written by one process and read simultaneously, the behavior is deterministic: the reader observes either the previous value or the newly written value.
 
-Note that `uint8` is atomit in any CPU that handles words bigger than 8 bits (current CPUs typically work with 64 bit words).
+Note that `uint8` is atomic in any CPU that handles words bigger than 8 bits (current CPUs typically work with 64 bit words).
+
+For demonstration purposes, we provide parallel implementations of the algorithm:
+- Go: Using native multithreading with goroutines and channels.
+- Rust: Leveraging the [Tokio](https://tokio.rs) asynchronous runtime library.
+
+Code implementations are available in the `/go` and `/rust` directories respectively.
 
 ## Agreement precision and rounds
 
